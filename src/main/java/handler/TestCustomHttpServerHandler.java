@@ -21,18 +21,20 @@ import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.util.CharsetUtil;
 import util.RequestUtils;
 
-public class CustomHttpServerHandler extends SimpleChannelInboundHandler<Object> { // Object 특정 Model로도 가능
+public class TestCustomHttpServerHandler extends SimpleChannelInboundHandler<Object> { // Object 특정 Model로도 가능
 
     private HttpRequest request;
+
     StringBuilder responseData = new StringBuilder();
 
-    @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) {
-        ctx.flush();
-    }
+    /*
+     * @Override public void channelReadComplete(ChannelHandlerContext ctx) {
+     * ctx.flush(); }
+     */
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Object msg) {
+        System.out.println("IS http Inbound Handler");
         if (msg instanceof HttpRequest) {
             HttpRequest request = this.request = (HttpRequest) msg;
 
@@ -58,6 +60,8 @@ public class CustomHttpServerHandler extends SimpleChannelInboundHandler<Object>
                 writeResponse(ctx, trailer, responseData);
             }
         }
+
+        ctx.fireUserEventTriggered(msg);
     }
 
     private void writeResponse(ChannelHandlerContext ctx) {

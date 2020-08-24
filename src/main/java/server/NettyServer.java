@@ -1,16 +1,12 @@
 package server;
 
-import handler.CustomHttpServerHandler;
+import handler.ChildHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelPipeline;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.http.HttpRequestDecoder;
-import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
@@ -33,18 +29,11 @@ public class NettyServer {
         try {
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
-                    .handler(new LoggingHandler(LogLevel.INFO)).childHandler(new ChannelInitializer<SocketChannel>() {
-                        @Override
-                        protected void initChannel(SocketChannel ch) throws Exception {
-                            ChannelPipeline p = ch.pipeline();
-                            p.addLast(new HttpRequestDecoder());
-                            p.addLast(new HttpResponseEncoder());
-                            p.addLast(new CustomHttpServerHandler());
-                        }
-                    });
+                    .handler(new LoggingHandler(LogLevel.INFO)).childHandler(new ChildHandler());
 
             ChannelFuture f = b.bind(port).sync();
             f.channel().closeFuture().sync();
+            f.addListener(ChannelFutureListener.CLOSE);
 
         } finally {
             bossGroup.shutdownGracefully();
